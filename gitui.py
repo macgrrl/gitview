@@ -636,36 +636,38 @@ class repoView (object):
         show_log.main(self)
         
 
+if editor.get_path() == None:
+    console.alert('No file open in editor')
+else:
+    r=repoView()
+    v=ui.load_view('gitui')
+    r.view=v
+    fdd=v['repo']
+    fdd.filter='.git'
+    fdd.textfield.action=r.did_select_repo
+    v['branch'].items=r.branch_iterator
+    v['remotebranch'].items=r.remote_branches_iterator
+    v['remote'].items=r.remotes_iterator
+    v['tableview1'].data_source=v['tableview1'].delegate=r
+    v['commit'].action=r.commit
+    v['branch'].action=r.branch_did_change
+    v['checkout'].action=r.checkout
+    v['pull'].action=r.pull_action
+    v['push'].action=r.push_action
+    v['clone'].action=r.clone_action
+    v['new'].action=r.new_action
+    v['resetPW'].action=r.resetPW
+    v['log'].action=r.log_action
+    #load current repo
+    editorpath=os.path.split(editor.get_path())[0]
+    if editorpath.startswith('/var'):
+        editorpath=os.path.join('/private',editorpath[1:])
+    repo_path=r._find_repo(editorpath)
+    if repo_path:
+        rel_repo_path=os.path.relpath(editorpath,v['repo'].base)
+        v['repo'].text=rel_repo_path
 
-r=repoView()
-v=ui.load_view('gitui')
-r.view=v
-fdd=v['repo']
-fdd.filter='.git'
-fdd.textfield.action=r.did_select_repo
-v['branch'].items=r.branch_iterator
-v['remotebranch'].items=r.remote_branches_iterator
-v['remote'].items=r.remotes_iterator
-v['tableview1'].data_source=v['tableview1'].delegate=r
-v['commit'].action=r.commit
-v['branch'].action=r.branch_did_change
-v['checkout'].action=r.checkout
-v['pull'].action=r.pull_action
-v['push'].action=r.push_action
-v['clone'].action=r.clone_action
-v['new'].action=r.new_action
-v['resetPW'].action=r.resetPW
-v['log'].action=r.log_action
-#load current repo
-editorpath=os.path.split(editor.get_path())[0]
-if editorpath.startswith('/var'):
-    editorpath=os.path.join('/private',editorpath[1:])
-repo_path=r._find_repo(editorpath)
-if repo_path:
-    rel_repo_path=os.path.relpath(editorpath,v['repo'].base)
-    v['repo'].text=rel_repo_path
-    
+    v.present('panel')
+    if v['repo'].text:
+        r.did_select_repo(v['repo'])
 
-v.present('panel')
-if v['repo'].text:
-    r.did_select_repo(v['repo'])
